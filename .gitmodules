@@ -1,0 +1,3 @@
+[submodule "themes/hugo-theme-ei"]
+	path = themes/hugo-theme-ei
+	url = https://github.com/finnley/hugo-theme-ei
