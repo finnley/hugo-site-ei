@@ -10,6 +10,7 @@ date: 2024-08-31 09:06
 ## 🌞 *我的 MINE*
 - [腾讯云](https://console.cloud.tencent.com/)
 - [微信公众平台](https://mp.weixin.qq.com/)
+- [SiteGround](https://my.siteground.com/websites/list)
 - [Github](https://github.com/finnley)
 - [Gitee](https://gitee.com/finnley)
 - [Bilibili](https://bilibili.com/)
@@ -26,6 +27,7 @@ date: 2024-08-31 09:06
 - [CPU天梯榜](https://topic.expreview.com/CPU/)
 - [urlencode](https://1024tools.com/urlencode)
 - [SSRDog](https://dogdog0xx0.ououla.cn/?code=wDZxNDcB#/account/dashboard)
+- [Google Fonts](https://fonts.google.com/)
 
 
 ## 🤖*大模型& AI*
