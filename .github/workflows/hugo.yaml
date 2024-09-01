@@ -1,153 +1,74 @@
-name: Hugo Site EI Release
+# Sample workflow for building and deploying a Hugo site to GitHub Pages
+name: Deploy Hugo site to Pages
 
 on:
-  # Trigger the workflow on push events to the main branch
+  # Runs on pushes targeting the default branch
   push:
-    branches:
-      - dev-1/deploy
-  # Manual trigger option for the workflow in the Actions tab
+    branches: ["dev-1/deploy"]
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: write
+  contents: read
+  pages: write
   id-token: write
-  deployments: write
 
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "deploy"
+  group: "pages"
   cancel-in-progress: false
 
+# Default to bash
 defaults:
   run:
     shell: bash
 
 jobs:
-  # Job to build the site
+  # Build job
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.121.0
+      HUGO_VERSION: 0.128.0
     steps:
       - name: Install Hugo CLI
         run: |
           wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
           && sudo dpkg -i ${{ runner.temp }}/hugo.deb
-
       - name: Install Dart Sass
         run: sudo snap install dart-sass
-
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0 # Fetch all history for all branches and tags
-
-      - name: Build Site with Hugo
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Install Node.js dependencies
+        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+      - name: Build with Hugo
         env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
-          HUGO_ENV: production
         run: |
           hugo \
-            --gc \
-            --minify
-
-      - name: List Public Directory Contents
-        run: ls -la public/
-
-      - name: Upload public directory artifact
-        uses: actions/upload-artifact@v2
+            --minify \
+            --baseURL "${{ steps.pages.outputs.base_url }}/"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: public-content              # 上传用于部署的 public 内容
-          path: public/                     # 上传 public 目录以供部署
-
-      - name: Archive public directory
-        run: tar -czvf ei.tar.gz -C public . # 使用 -C 更改目录为 public
-
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-package
-          path: ei.tar.gz # 上传打包后的文件以供发布
-
-      # Deploy to Vercel
-#      - name: Deploy to Vercel
-#        uses: amondnet/vercel-action@v20
-#        with:
-#          vercel-token: ${{ secrets.VERCEL_TOKEN }}  # Replace with your Vercel token secret
-#          vercel-args: '--prod'  # Optional: Add any additional arguments for Vercel deployment
-#          working-directory: ./public  # Specify your build output directory
+          path: ./public
 
   # Deployment job
   deploy:
     environment:
-      name: github-pages  # 定义环境名称
-      url: ${{ steps.deployment.outputs.page_url }}  # 用于展示部署完成后的页面 URL
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build  # 确保在 build 作业完成后执行部署作业
+    needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        uses: actions/download-artifact@v2
-        with:
-          name: public-content # 下载用于部署的 public 内容
-
-      # 创建公共目录以确保后续步骤可以访问
-      - name: Create public directory
-        run: mkdir -p public  # 确保创建目标公共目录
-
-      # 解压下载的工件以确保文件可用
-      - name: Extract public content  # 新增步骤：解压工件
-        run: tar -xzvf public-content -C public/  # 将下载的工件解压到 public 目录
-
-      - name: Check downloaded files  # 检查从工件中下载的文件
-        run: ls -la public/
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3  # Use GitHub Pages deployment Action
-        with:
-          branch: gh-pages  # Specify the branch to deploy to (usually gh-pages)
-          folder: public     # Specify the folder to deploy
-
-  # Job to create a release
-  release:
-    runs-on: ubuntu-latest
-    needs: deploy # Ensure the deploy job completes before this job starts
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
-
-      - name: Download release artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: release-package # 下载用于发布的压缩包
-
-      - name: Check if tag exists
-        id: check_tag
-        run: |
-          if git rev-parse -q --verify "refs/tags/v1.0.0"; then
-            echo "Tag v1.0.0 exists. Deleting..."
-            git tag -d v1.0.0
-            git push origin :refs/tags/v1.0.0
-          else
-            echo "Tag v1.0.0 does not exist."
-          fi
-
-      - name: Create tag
-        run: git tag v1.0.0 && git push origin v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use a personal access token for authentication
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v1.0.0  # Specify the release version
-          name: Release v1.0.0  # Use 'name' instead of 'release_name'
-          body: |
-            This is the release of version 1.0.0.
-          files: ei.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
-
+        uses: actions/deploy-pages@v4
