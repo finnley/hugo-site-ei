@@ -19,12 +19,12 @@ date: 2024-08-31 09:06
 - [Sci-Hub中文社区](https://discuss.sci-hub.org.cn/d/2579)
 - [ZLibrary](https://singlelogin.re/)
 - [DrawIO](https://app.diagrams.net/)
-- [有道翻译](http://fanyi.youdao.com/)
+- [阿里巴巴开源镜像站](https://developer.aliyun.com/mirror/?userCode=okjhlpr5)
 - [AnimateCSS](https://animate.style/)
 - [字体之家](http://www.fonts.net.cn/)
-
 - [CPU天梯榜](https://topic.expreview.com/CPU/)
 - [urlencode](https://1024tools.com/urlencode)
+- [SSRDog](https://dogdog0xx0.ououla.cn/?code=wDZxNDcB#/account/dashboard)
 
 
 ## 🤖*大模型 AI*
