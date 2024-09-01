@@ -87,7 +87,6 @@ jobs:
     needs: build  # 确保在 build 作业完成后执行部署作业
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/download-artifact@v2
         with:
           name: public-content # 下载用于部署的 public 内容
