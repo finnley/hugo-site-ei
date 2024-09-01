@@ -4,7 +4,7 @@ on:
   # Trigger the workflow on push events to the main branch
   push:
     branches:
-      - main
+      - dev-1/deploy
   # Manual trigger option for the workflow in the Actions tab
   workflow_dispatch:
 
@@ -54,15 +54,14 @@ jobs:
       - name: List Public Directory Contents
         run: ls -la public/
 
-      - name: Archive public directory
-        # run: tar -czvf ei.tar.gz ./public
-        run: tar -czvf ei.tar.gz -C public . # 使用 -C 更改目录为 public
-
       - name: Upload public directory artifact
         uses: actions/upload-artifact@v2
         with:
-          name: public-content
-          path: public/ # 上传 public 目录以供部署
+          name: public-content              # 上传用于部署的 public 内容
+          path: public/                     # 上传 public 目录以供部署
+
+      - name: Archive public directory
+        run: tar -czvf ei.tar.gz -C public . # 使用 -C 更改目录为 public
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v2
