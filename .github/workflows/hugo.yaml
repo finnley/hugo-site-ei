@@ -90,6 +90,14 @@ jobs:
         with:
           name: public-content # 下载用于部署的 public 内容
 
+      # 创建公共目录以确保后续步骤可以访问
+      - name: Create public directory
+        run: mkdir -p public  # 确保创建目标公共目录
+
+      # 解压下载的工件以确保文件可用
+      - name: Extract public content  # 新增步骤：解压工件
+        run: tar -xzvf public-content -C public/  # 将下载的工件解压到 public 目录
+
       - name: Check downloaded files  # 检查从工件中下载的文件
         run: ls -la public/
 
