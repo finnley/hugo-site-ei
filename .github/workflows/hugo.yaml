@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-
   # Manual trigger option for the workflow in the Actions tab
   workflow_dispatch:
 
@@ -51,17 +50,25 @@ jobs:
           hugo \
             --gc \
             --minify
+
       - name: List Public Directory Contents
         run: ls -la public/
 
       - name: Archive public directory
-        run: tar -czvf ei.tar.gz ./public
+        # run: tar -czvf ei.tar.gz ./public
+        run: tar -czvf ei.tar.gz -C public . # 使用 -C 更改目录为 public
 
-      - name: Upload artifact
+      - name: Upload public directory artifact
         uses: actions/upload-artifact@v2
         with:
-          name: public
-          path: ei.tar.gz
+          name: public-content
+          path: public/ # 上传 public 目录以供部署
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-package
+          path: ei.tar.gz # 上传打包后的文件以供发布
 
       # Deploy to Vercel
 #      - name: Deploy to Vercel
@@ -81,25 +88,42 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3  # 使用 GitHub Pages 部署 Action
+        uses: actions/download-artifact@v2
         with:
-          branch: gh-pages  # 指定要部署到的分支（通常是 gh-pages）
-          folder: public     # 指定生成的文件夹
+          name: public-content # 下载用于部署的 public 内容
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3  # Use GitHub Pages deployment Action
+        with:
+          branch: gh-pages  # Specify the branch to deploy to (usually gh-pages)
+          folder: public     # Specify the folder to deploy
 
   # Job to create a release
   release:
     runs-on: ubuntu-latest
-    needs: build # Ensure the build job completes before this job starts
+    needs: deploy # Ensure the deploy job completes before this job starts
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
 
-      - name: Download artifact
+      - name: Download release artifact
         uses: actions/download-artifact@v2
         with:
-          name: public
+          name: release-package # 下载用于发布的压缩包
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse -q --verify "refs/tags/v1.0.0"; then
+            echo "Tag v1.0.0 exists. Deleting..."
+            git tag -d v1.0.0
+            git push origin :refs/tags/v1.0.0
+          else
+            echo "Tag v1.0.0 does not exist."
+          fi
 
       - name: Create tag
         run: git tag v1.0.0 && git push origin v1.0.0
